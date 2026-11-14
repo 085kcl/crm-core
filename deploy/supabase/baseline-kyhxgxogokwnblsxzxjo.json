@@ -1,0 +1,204 @@
+{
+  "project_ref": "kyhxgxogokwnblsxzxjo",
+  "verified_on": "2026-11-14",
+  "migrations": [
+    {
+      "source": "supabase/migrations/20260829232954_crm_core_foundation.sql",
+      "version": "20261111175434",
+      "name": "crm_core_foundation",
+      "sha256": "1ce44f18d31a957584dcb3e7d088430c9a8e2a1471ff386b84f9ee13650fd2f1"
+    },
+    {
+      "source": "supabase/migrations/20260829233030_tenant_integrity_and_role_hardening.sql",
+      "version": "20261111175436",
+      "name": "tenant_integrity_and_role_hardening",
+      "sha256": "441fde5fe22b08d063884c5fb471d0d7cf89ac15d0c0c93bf0417a43187ad99e"
+    },
+    {
+      "source": "supabase/migrations/20260829233102_database_audit.sql",
+      "version": "20261111175439",
+      "name": "database_audit",
+      "sha256": "252c718c6aa16c619092f5e53555ae9ba4ef0c6f8d01b6ab2c7ca9267a9a6cba"
+    },
+    {
+      "source": "supabase/migrations/20260829233131_domain_invariants_and_session_hardening.sql",
+      "version": "20261111175442",
+      "name": "domain_invariants_and_session_hardening",
+      "sha256": "00ea6a975e1a2b940aa516e74e1ac95ca51b68575e50872bfe715ddeb8c72cd9"
+    },
+    {
+      "source": "supabase/migrations/20260829233148_private_security_functions.sql",
+      "version": "20261111175445",
+      "name": "private_security_functions",
+      "sha256": "41a5f41c89ab9b4ad33886d4f5ef4fe7c5f17bd820aad3be54256dd10a735fa8"
+    },
+    {
+      "source": "supabase/migrations/20260829233204_data_api_least_privilege.sql",
+      "version": "20261111175447",
+      "name": "data_api_least_privilege",
+      "sha256": "f91656796569e2ba3314c2c842630e57589a6730a431cd4bcc3db76ab10f88f6"
+    },
+    {
+      "source": "supabase/migrations/20260829233402_private_function_least_privilege.sql",
+      "version": "20261111175449",
+      "name": "private_function_least_privilege",
+      "sha256": "307aa91afc46c18f2b43afaf5d06f5cf961c421a519fdfccb9f16d02ccee3cc5"
+    },
+    {
+      "source": "supabase/migrations/20260829234118_performance_hardening.sql",
+      "version": "20261111175452",
+      "name": "performance_hardening",
+      "sha256": "41523cf6f7350ab8747fadfa29bc673e1fc8f60d3c021a62bed960fd0a3ec33f"
+    },
+    {
+      "source": "supabase/migrations/20260831221538_polymorphic_entity_tenant_integrity.sql",
+      "version": "20261111175454",
+      "name": "polymorphic_entity_tenant_integrity",
+      "sha256": "4308a154d3a96f5d8b9d0de6f48f039c05ab6df25afd9e71e24c80d3e8a809f3"
+    },
+    {
+      "source": "supabase/migrations/20260901031048_crm_v003_tags_and_custom_fields.sql",
+      "version": "20261111175456",
+      "name": "crm_v003_tags_and_custom_fields",
+      "sha256": "b575cf9065262a5ec0efc7f3440305020a65115d415d9751c35b9add01411b74"
+    },
+    {
+      "source": "supabase/migrations/20260901031202_crm_v003_search_and_contact_360.sql",
+      "version": "20261111175518",
+      "name": "crm_v003_search_and_contact_360",
+      "sha256": "b42760f2489a925898f64563a28a8f376427e50a93c5d0874958e7db2cd0c0e7"
+    },
+    {
+      "source": "supabase/migrations/20260901031355_crm_v003_fk_index_hardening.sql",
+      "version": "20261111175523",
+      "name": "crm_v003_fk_index_hardening",
+      "sha256": "adea18f393be4d724d4e5b25fb2652f8f34286922cd01f86c48d6ab0b21b4533"
+    },
+    {
+      "source": "supabase/migrations/20260901032746_crm_v003_contact_360_rpc.sql",
+      "version": "20261111175525",
+      "name": "crm_v003_contact_360_rpc",
+      "sha256": "d99b58518a546e5829fa6dcb0cc41416d155ca871988ee89bbe51617035f5b5b"
+    },
+    {
+      "source": "supabase/migrations/20260924223042_crm_v0032_intake_bridge_foundation.sql",
+      "version": "20261111175528",
+      "name": "crm_v0032_intake_bridge_foundation",
+      "sha256": "1ae5ec7fdb6b053d86b9a2c224e6eee1177015f043cddbf5df6fdf83b9c354b3"
+    },
+    {
+      "source": "supabase/migrations/20260925002144_crm_v0032_transactional_notifications.sql",
+      "version": "20261111175531",
+      "name": "crm_v0032_transactional_notifications",
+      "sha256": "a66a20f45ff9577d0763fffd276906ba2b38bd90e281373109b87aae681fc243"
+    },
+    {
+      "source": "supabase/migrations/20260925002311_crm_v0032_notification_digest_hardening.sql",
+      "version": "20261111175539",
+      "name": "crm_v0032_notification_digest_hardening",
+      "sha256": "2067882331b8fa2c962bbdfc38a12978aec9fdcd68ab0f3b95d537b2446439d2"
+    },
+    {
+      "source": "supabase/migrations/20260925002601_crm_v0032_notification_fk_index_hardening.sql",
+      "version": "20261111175541",
+      "name": "crm_v0032_notification_fk_index_hardening",
+      "sha256": "d8c1713ffd78d861a3bc25b34378f7bd2b8455de569ff722a52caf919f277b5c"
+    },
+    {
+      "source": "supabase/migrations/20260925002856_crm_v0032_notification_manual_retry.sql",
+      "version": "20261111175544",
+      "name": "crm_v0032_notification_manual_retry",
+      "sha256": "78112145b35078c441fa63376c863f7b394061f1160bd592a870c673b46fd76e"
+    },
+    {
+      "source": "supabase/migrations/20260925003156_crm_v0032_notification_provider_truthfulness.sql",
+      "version": "20261111175546",
+      "name": "crm_v0032_notification_provider_truthfulness",
+      "sha256": "934384ee4d6fb4d834e26a10b989a44e46285eeb16058e730b1f194997f69a8d"
+    },
+    {
+      "source": "supabase/migrations/20260925003612_crm_v0032_intake_status_workflow.sql",
+      "version": "20261111175548",
+      "name": "crm_v0032_intake_status_workflow",
+      "sha256": "7f05940ad91da73741d9bb93f67bdf14b79a4707da1ff3bc4c7027addbecee5a"
+    },
+    {
+      "source": "supabase/migrations/20260925003825_crm_v0032_intake_status_write_hardening.sql",
+      "version": "20261111175554",
+      "name": "crm_v0032_intake_status_write_hardening",
+      "sha256": "28946a4a126a7129567e3ebc0604023cbdea8e325f7404709491da11a95c8ad8"
+    },
+    {
+      "source": "supabase/migrations/20260925004341_crm_v0032_intake_status_seed_alignment.sql",
+      "version": "20261111175556",
+      "name": "crm_v0032_intake_status_seed_alignment",
+      "sha256": "225c70fb432f3bcc2cd22583a288ed5c2c972d76f07f6b2a1d72dcc679035020"
+    },
+    {
+      "source": "supabase/migrations/20260925161640_crm_v0032_status_command_idempotency.sql",
+      "version": "20261111175558",
+      "name": "crm_v0032_status_command_idempotency",
+      "sha256": "27ce4d94ee0dc4f376a0543ed433dc070bd67e8b37393d7382807a96d2de56d3"
+    },
+    {
+      "source": "supabase/migrations/20260925161928_crm_v0032_intake_activity_entity_support.sql",
+      "version": "20261111175601",
+      "name": "crm_v0032_intake_activity_entity_support",
+      "sha256": "28c86bdb8dc2d3f4bd2fc99871f8009f65d29dbf8b1957b13390ca23a7bf1d89"
+    },
+    {
+      "source": "supabase/migrations/20260925162130_crm_v0032_status_notification_policy_rpc.sql",
+      "version": "20261111175603",
+      "name": "crm_v0032_status_notification_policy_rpc",
+      "sha256": "d25529f4e67f9e692f4cc37f33e9cc679722ed26afc0cc0dc45b7b823e81f452"
+    },
+    {
+      "source": "supabase/migrations/20260925163328_crm_v0032_status_advisor_closure.sql",
+      "version": "20261111175610",
+      "name": "crm_v0032_status_advisor_closure",
+      "sha256": "f461b73ee12f6adf61cd594a21d4e23b7309a27b274289a23cee771d29a6f7e4"
+    },
+    {
+      "source": "supabase/migrations/20260927172531_crm_v0032_classy_site_bridge_secret_access.sql",
+      "version": "20261111175643",
+      "name": "crm_v0032_classy_site_bridge_secret_access",
+      "sha256": "c03742bec112eee74623c8088d3c312455870e39eed98d610ae32ee2c178e367"
+    },
+    {
+      "source": "supabase/migrations/20260928001242_crm_v0032_intake_inbox_assignment.sql",
+      "version": "20261111175645",
+      "name": "crm_v0032_intake_inbox_assignment",
+      "sha256": "6fe0b424578985915630150f01e81fc488726f666f00b4eb8b104a2ae8bf7483"
+    },
+    {
+      "source": "supabase/migrations/20260928001323_crm_v0032_intake_assignment_activity_fix.sql",
+      "version": "20261111175648",
+      "name": "crm_v0032_intake_assignment_activity_fix",
+      "sha256": "f0ff6bb04b26f8d6754e6b2a8b2bcff36c13622ad465fb09a6dfd0da2d9525c7"
+    },
+    {
+      "source": "supabase/migrations/20260928001924_crm_v0032_intake_assignment_ambiguity_fix.sql",
+      "version": "20261111175650",
+      "name": "crm_v0032_intake_assignment_ambiguity_fix",
+      "sha256": "070967f2570838367abb236fa7f9461201c5f0748d545b898199e154b4c650dc"
+    },
+    {
+      "source": "supabase/migrations/20260930175610_crm_v0032_authenticated_operational_commands.sql",
+      "version": "20261111175656",
+      "name": "crm_v0032_authenticated_operational_commands",
+      "sha256": "6f37f34b60a9c8de619c7e0b5c2c4ee6b624c133c47a9aea6089189f7b3b15cc"
+    },
+    {
+      "source": "supabase/migrations/20260930180133_crm_v0032_remove_authenticated_definer_wrappers.sql",
+      "version": "20261111175658",
+      "name": "crm_v0032_remove_authenticated_definer_wrappers",
+      "sha256": "05f000330d280639889d9ae8679df4cd83fd7dc32d2f2694676766a715b760de"
+    },
+    {
+      "source": "supabase/migrations/20260930181557_crm_v0032_workspace_command_service.sql",
+      "version": "20261111175701",
+      "name": "crm_v0032_workspace_command_service",
+      "sha256": "21dd77111dad403a802208d8c507f882bcdca08646307a21f6c3de788f25e01a"
+    }
+  ]
+}
