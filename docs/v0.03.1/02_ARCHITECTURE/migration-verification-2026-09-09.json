@@ -1,0 +1,72 @@
+{
+  "date": "2026-09-09",
+  "environment": "FERNANDES",
+  "comparison": "CRLF normalized to LF and outer whitespace trimmed; SHA256 covers local file bytes",
+  "migrations": [
+    {
+      "file": "supabase/migrations/20260829232954_crm_core_foundation.sql",
+      "sha256": "33f1e9198827a0454e44fe2877691e3e6495f015ecec3a6a68562d7ad5ead2bc",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829233030_tenant_integrity_and_role_hardening.sql",
+      "sha256": "2413336507660633c3ecb0e3fa506696ba3d6f359f680bf28b39d225c9bb755a",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829233102_database_audit.sql",
+      "sha256": "e1a40081bc636c5f48e7fe3a633bcafcf61d1c1757abf70c4c2c554e67d2804c",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829233131_domain_invariants_and_session_hardening.sql",
+      "sha256": "53f6e3973c858cccd607f084c43f8970f88a9acc96a97b847fd21de5b663da83",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829233148_private_security_functions.sql",
+      "sha256": "8fbacbed8ed540fba9825909c8a88a53c3c19af859d44f781fcaf3f2b6ae4228",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829233204_data_api_least_privilege.sql",
+      "sha256": "3fca78da6e4514388e3661679db0e9630e41112cf8a53111ea4c32ea1c7443f9",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829233402_private_function_least_privilege.sql",
+      "sha256": "63a85e2b9e0eba4ac65d196722a4a5ecedb6a7b6c97fb936272d7a120795f955",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260829234118_performance_hardening.sql",
+      "sha256": "dd17f8016810a5e56ad20162dd5b8a7e73133f82d95f4e822b87c12a7a000b58",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260831221538_polymorphic_entity_tenant_integrity.sql",
+      "sha256": "b02fe94200e75c51c498e1ed205ab8a04aa71731458f1813850ad84dafaace02",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260901031048_crm_v003_tags_and_custom_fields.sql",
+      "sha256": "1748d2073bbd26a4a7c94aebe37761696fbbcec89fba80f332ac486cb2d7ac93",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260901031202_crm_v003_search_and_contact_360.sql",
+      "sha256": "efdd2459211cc021382a3b11b5fc3e8c1823ec5fa691089fe5df8f6b33eaaf94",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260901031355_crm_v003_fk_index_hardening.sql",
+      "sha256": "695af6a9ad99e4684f6e1a371926893ac7cfbf98de11ba21f64383734a0c5eec",
+      "matches_applied_sql": true
+    },
+    {
+      "file": "supabase/migrations/20260901032746_crm_v003_contact_360_rpc.sql",
+      "sha256": "d2a9f5a2d027cfa261b93a077efe4fe7fb4b6c380ff67e63396848dcd76e7f9e",
+      "matches_applied_sql": true
+    }
+  ]
+}

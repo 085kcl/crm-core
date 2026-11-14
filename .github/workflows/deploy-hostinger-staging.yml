@@ -1,0 +1,80 @@
+name: Deploy CRM Core to Hostinger staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type deploy-staging to continue
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirmation == 'deploy-staging' }}
+    runs-on: ubuntu-latest
+    environment: hostinger-staging
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Require successful CI on this exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          CANDIDATE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          status=$(gh api --method GET "repos/$REPOSITORY/actions/workflows/ci.yml/runs" -f head_sha="$CANDIDATE_SHA" -f event=push --jq '.workflow_runs[0] | select(.status == "completed") | .conclusion')
+          test "$status" = success
+
+      - name: Validate deployment configuration
+        env:
+          HOSTINGER_API_KEY: ${{ secrets.HOSTINGER_API_KEY }}
+          HOSTINGER_VM_ID: ${{ vars.HOSTINGER_VM_ID }}
+          PRIVATE_REPO_ACCESS_VERIFIED: ${{ vars.HOSTINGER_PRIVATE_REPO_ACCESS_VERIFIED }}
+          SUPABASE_URL: ${{ secrets.CRM_STAGING_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CRM_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -eu
+          test -n "$HOSTINGER_API_KEY"
+          test -n "$HOSTINGER_VM_ID"
+          test "$PRIVATE_REPO_ACCESS_VERIFIED" = "true"
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_PUBLISHABLE_KEY"
+
+      - name: Deploy to Hostinger VPS
+        # v2 uses a read-only SSH deploy key on the VPS, not a GitHub PAT.
+        # Literal env references below avoid interpolating secret contents into
+        # the pinned composite action's generated shell scripts.
+        uses: hostinger/deploy-on-vps@b0868cec74bfa63af6bfa7bdb0dfee2f9bef13ea # v2
+        env:
+          HOSTINGER_API_KEY: ${{ secrets.HOSTINGER_API_KEY }}
+          HOSTINGER_VM_ID: ${{ vars.HOSTINGER_VM_ID }}
+          SUPABASE_URL: ${{ secrets.CRM_STAGING_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CRM_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.CRM_STAGING_SUPABASE_SECRET_KEY }}
+          CLASSY_BRIDGE_TOKEN: ${{ secrets.CRM_STAGING_CLASSY_BRIDGE_TOKEN }}
+          CRM_NOTIFICATION_WORKER_TOKEN: ${{ secrets.CRM_STAGING_NOTIFICATION_WORKER_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.CRM_STAGING_RESEND_API_KEY }}
+          RESEND_WEBHOOK_SECRET: ${{ secrets.CRM_STAGING_RESEND_WEBHOOK_SECRET }}
+        with:
+          api-key: $HOSTINGER_API_KEY
+          virtual-machine: $HOSTINGER_VM_ID
+          project-name: crm-core-staging
+          docker-compose-path: deploy/hostinger/compose.yaml
+          environment-variables: |
+            SUPABASE_URL=$SUPABASE_URL
+            SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
+            SUPABASE_SECRET_KEY=$SUPABASE_SECRET_KEY
+            CLASSY_BRIDGE_TOKEN=$CLASSY_BRIDGE_TOKEN
+            CLASSY_BRIDGE_FORM_KEY=classy-pre-analysis
+            CRM_NOTIFICATION_WORKER_TOKEN=$CRM_NOTIFICATION_WORKER_TOKEN
+            RESEND_API_KEY=$RESEND_API_KEY
+            RESEND_WEBHOOK_SECRET=$RESEND_WEBHOOK_SECRET
+

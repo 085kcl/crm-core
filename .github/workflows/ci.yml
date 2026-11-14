@@ -1,0 +1,88 @@
+name: CRM Core CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "chore/**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NPM_CONFIG_AUDIT: "false"
+          NPM_CONFIG_FUND: "false"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify standalone runtime
+        run: test -f dist/standalone/server.js
+
+      - name: Node tests
+        run: node --test tests/*.test.mjs
+
+      - name: Build native Node standalone
+        run: CRM_RUNTIME_TARGET=node npm run build
+
+      - name: Smoke isolated Node standalone
+        run: node scripts/verify-node-standalone.mjs
+
+  container:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build CRM container
+        run: docker build --pull -t crm-core:ci .
+
+      - name: Run CRM container
+        run: docker run -d --name crm-core-ci -p 127.0.0.1:3100:3000 crm-core:ci
+
+      - name: Smoke /crm standalone runtime
+        run: node deploy/hostinger/smoke.mjs http://127.0.0.1:3100
+
+      - name: Require healthy container
+        run: node deploy/hostinger/wait-healthy.mjs crm-core-ci
+
+      - name: Container diagnostics
+        if: failure()
+        run: |
+          docker ps -a
+          docker logs crm-core-ci || true
+
+      - name: Stop CRM container
+        if: always()
+        run: docker rm -f crm-core-ci || true

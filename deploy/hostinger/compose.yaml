@@ -1,0 +1,34 @@
+services:
+  crm-core:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      # Required behind the local Nginx TLS terminator so Vinext reconstructs
+      # request.url from X-Forwarded-Proto and same-origin mutation checks remain valid.
+      VINEXT_TRUST_PROXY: "1"
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
+      CLASSY_BRIDGE_TOKEN: ${CLASSY_BRIDGE_TOKEN:-}
+      CLASSY_BRIDGE_FORM_KEY: ${CLASSY_BRIDGE_FORM_KEY:-classy-pre-analysis}
+      CRM_NOTIFICATION_WORKER_TOKEN: ${CRM_NOTIFICATION_WORKER_TOKEN:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
+    ports:
+      - "127.0.0.1:3100:3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/crm',{redirect:'error',signal:AbortSignal.timeout(4000)}).then(r=>{if(r.status!==200||!r.headers.get('content-type')?.startsWith('text/html'))process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+

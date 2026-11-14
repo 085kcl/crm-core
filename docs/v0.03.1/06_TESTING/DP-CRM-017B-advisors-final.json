@@ -1,0 +1,258 @@
+{
+  "project": "FERNANDES",
+  "project_id": "fnzcmoydjlarelotnmon",
+  "date": "2026-09-10",
+  "security": {
+    "lints": [
+      {
+        "name": "rls_enabled_no_policy",
+        "title": "RLS Enabled No Policy",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "SECURITY"
+        ],
+        "description": "Detects cases where row level security (RLS) has been enabled on a table but no RLS policies have been created.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+        "count": 1,
+        "findings": [
+          {
+            "detail": "Table \\`public.outbox_events\\` has RLS enabled, but no policies exist",
+            "metadata": {
+              "name": "outbox_events",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:57.919Z"
+          }
+        ]
+      },
+      {
+        "name": "authenticated_security_definer_function_executable",
+        "title": "Signed-In Users Can Execute SECURITY DEFINER Function",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "SECURITY"
+        ],
+        "description": "Detects `SECURITY DEFINER` functions that are callable by signed-in users. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if signed-in users should not call it.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+        "count": 1,
+        "findings": [
+          {
+            "detail": "Function `public.create_workspace(p_name text, p_slug text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/create_workspace`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+            "metadata": {
+              "name": "create_workspace",
+              "schema": "public",
+              "language": "plpgsql",
+              "arguments": "p_name text, p_slug text",
+              "security_definer": true
+            },
+            "observed_at": "2026-09-10T23:23:57.919Z"
+          }
+        ]
+      }
+    ]
+  },
+  "performance": {
+    "lints": [
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "count": 18,
+        "findings": [
+          {
+            "detail": "Index \\`idx_deals_workspace_company\\` on table \\`public.deals\\` has not been used",
+            "metadata": {
+              "name": "deals",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_deals_workspace_contact\\` on table \\`public.deals\\` has not been used",
+            "metadata": {
+              "name": "deals",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_contacts_search_document\\` on table \\`public.contacts\\` has not been used",
+            "metadata": {
+              "name": "contacts",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_companies_search_document\\` on table \\`public.companies\\` has not been used",
+            "metadata": {
+              "name": "companies",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_leads_search_document\\` on table \\`public.leads\\` has not been used",
+            "metadata": {
+              "name": "leads",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_deals_search_document\\` on table \\`public.deals\\` has not been used",
+            "metadata": {
+              "name": "deals",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_tasks_workspace_open_due\\` on table \\`public.tasks\\` has not been used",
+            "metadata": {
+              "name": "tasks",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_contacts_workspace_created\\` on table \\`public.contacts\\` has not been used",
+            "metadata": {
+              "name": "contacts",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_contacts_workspace_email\\` on table \\`public.contacts\\` has not been used",
+            "metadata": {
+              "name": "contacts",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_contacts_workspace_phone\\` on table \\`public.contacts\\` has not been used",
+            "metadata": {
+              "name": "contacts",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_custom_field_values_created_by\\` on table \\`public.custom_field_values\\` has not been used",
+            "metadata": {
+              "name": "custom_field_values",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_custom_field_values_updated_by\\` on table \\`public.custom_field_values\\` has not been used",
+            "metadata": {
+              "name": "custom_field_values",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_companies_workspace_tax\\` on table \\`public.companies\\` has not been used",
+            "metadata": {
+              "name": "companies",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_leads_workspace_status\\` on table \\`public.leads\\` has not been used",
+            "metadata": {
+              "name": "leads",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_pipelines_workspace\\` on table \\`public.pipelines\\` has not been used",
+            "metadata": {
+              "name": "pipelines",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_stages_pipeline_position\\` on table \\`public.pipeline_stages\\` has not been used",
+            "metadata": {
+              "name": "pipeline_stages",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_outbox_pending\\` on table \\`public.outbox_events\\` has not been used",
+            "metadata": {
+              "name": "outbox_events",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          },
+          {
+            "detail": "Index \\`idx_workspaces_created_by\\` on table \\`public.workspaces\\` has not been used",
+            "metadata": {
+              "name": "workspaces",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-09-10T23:23:55.884Z"
+          }
+        ]
+      },
+      {
+        "name": "auth_db_connections_absolute",
+        "title": "Auth DB Connection Strategy is not Percentage",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Using a percentage based allocation connection strategy for Auth can help to improve the server's performance when increasing instance size.",
+        "remediation": "https://supabase.com/docs/guides/deployment/going-into-prod",
+        "count": 1,
+        "findings": [
+          {
+            "detail": "Your project's Auth server is configured to use at most 10 connections. Increasing the instance size without manually adjusting this number will not improve the performance of the Auth server. Switch to a percentage based connection allocation strategy instead.",
+            "metadata": {
+              "type": "auth",
+              "entity": "Auth"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
