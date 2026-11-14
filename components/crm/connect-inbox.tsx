@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ArrowUpRight, CircleUserRound, Inbox, Loader2, MessageCircle, RefreshCw, ShieldCheck } from "lucide-react"
+import { ArrowUpRight, ChevronLeft, ChevronRight, CircleUserRound, Inbox, Loader2, MessageCircle, RefreshCw, ShieldCheck } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,8 @@ async function getJson<T>(path:string):Promise<T> {
 
 export function ConnectInbox() {
   const [filter,setFilter]=useState<Filter>("all")
+  const [page,setPage]=useState(1)
+  const [total,setTotal]=useState(0)
   const [items,setItems]=useState<Conversation[]>([])
   const [messages,setMessages]=useState<Message[]>([])
   const [messageThreadId,setMessageThreadId]=useState<string|null>(null)
@@ -70,22 +72,24 @@ export function ConnectInbox() {
     setLoading(true)
     setError(null)
     try {
-      const data=await getJson<InboxResponse>(`/api/connect/conversations?status=${filter}&limit=50`)
+      const data=await getJson<InboxResponse>(`/api/connect/conversations?status=${filter}&page=${page}&limit=50`)
       if(requestId!==listRequestCounter.current)return
       setMode(data.mode)
       setMe(data.me||null)
       setRole(data.role||null)
       setItems(data.items)
+      setTotal(data.total)
       setActive(previous=>data.items.some(item=>item.id===previous)?previous:(data.items[0]?.id||null))
     } catch(e) {
       if(requestId!==listRequestCounter.current)return
       setError(e instanceof Error?e.message:"Falha ao carregar conversas.")
       setItems([])
+      setTotal(0)
       setActive(null)
     } finally {
       if(requestId===listRequestCounter.current)setLoading(false)
     }
-  },[filter])
+  },[filter,page])
 
   const loadThread=useCallback(async(id:string)=>{
     const requestId=++requestCounter.current
@@ -119,6 +123,7 @@ export function ConnectInbox() {
     return ()=>window.clearTimeout(timer)
   },[active,loadThread])
   const selected=items.find(item=>item.id===active)||null
+  const totalPages=Math.max(1,Math.ceil(total/50))
 
   async function refresh() {
     await loadList()
@@ -221,7 +226,7 @@ export function ConnectInbox() {
           </div>
           <div className="border-b border-[#e5e9f0] px-4 py-3">
             <label className="block text-xs font-medium text-[#58667b]" htmlFor="connect-filter">Situação</label>
-            <select id="connect-filter" value={filter} onChange={e=>setFilter(e.target.value as Filter)}
+            <select id="connect-filter" value={filter} onChange={e=>{setPage(1);setFilter(e.target.value as Filter)}}
               className="mt-1 h-9 w-full rounded-lg border border-[#dce2eb] bg-white px-3 text-sm text-[#172033]">
               <option value="all">Todas</option><option value="open">Abertas</option>
               <option value="pending">Aguardando</option><option value="closed">Encerradas</option>
@@ -246,6 +251,17 @@ export function ConnectInbox() {
                 </button>
               ))}
           </CardContent>
+          {total>0 && <footer className="flex items-center justify-between gap-2 border-t border-[#e5e9f0] px-4 py-3">
+            <Button type="button" variant="outline" size="sm" aria-label="Página anterior"
+              disabled={loading||page<=1} onClick={()=>setPage(v=>Math.max(1,v-1))}>
+              <ChevronLeft className="size-4"/> Anterior
+            </Button>
+            <span className="text-xs text-[#657185]">Página {page} de {totalPages}</span>
+            <Button type="button" variant="outline" size="sm" aria-label="Próxima página"
+              disabled={loading||page>=totalPages} onClick={()=>setPage(v=>Math.min(totalPages,v+1))}>
+              Próxima <ChevronRight className="size-4"/>
+            </Button>
+          </footer>}
         </Card>
 
         <Card className="overflow-hidden rounded-2xl border-[#dfe4ed] bg-white p-0 shadow-sm">
