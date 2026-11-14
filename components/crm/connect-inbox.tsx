@@ -25,6 +25,7 @@ type Conversation = {
 type Message = {id:string;direction:"inbound";message_type:"text"|"media";body:string;occurred_at:string}
 type InboxResponse = {mode:string;items:Conversation[];total:number;page:number;me?:string;role?:string}
 type MessagesResponse = {messages:Message[]}
+type ContactOption={id:string;first_name:string;last_name:string|null;email:string|null}
 type Filter = "all"|"open"|"pending"|"closed"
 const labels: Record<Conversation["provider"],string> = {
   instagram:"Instagram",messenger:"Messenger",whatsapp:"WhatsApp",
@@ -56,6 +57,10 @@ export function ConnectInbox() {
   const [busy,setBusy]=useState(false)
   const [error,setError]=useState<string|null>(null)
   const [messageError,setMessageError]=useState<string|null>(null)
+  const [showContactPicker,setShowContactPicker]=useState(false)
+  const [contacts,setContacts]=useState<ContactOption[]>([])
+  const [selectedContact,setSelectedContact]=useState("")
+  const [loadingContacts,setLoadingContacts]=useState(false)
 
   const loadList=useCallback(async()=>{
     setLoading(true)
@@ -118,6 +123,38 @@ export function ConnectInbox() {
     finally{setBusy(false)}
   }
 
+
+
+  async function openContactPicker() {
+    if(!selected||busy)return
+    setShowContactPicker(true)
+    setSelectedContact(selected.contact_id||"")
+    setLoadingContacts(true)
+    setMessageError(null)
+    try {
+      const response=await getJson<{contacts:ContactOption[]}>(`/api/contacts`)
+      setContacts(response.contacts||[])
+    }catch(e){setMessageError(e instanceof Error?e.message:"Falha ao carregar contatos.")}
+    finally{setLoadingContacts(false)}
+  }
+
+  async function linkContact(contactId:string|null) {
+    if(!selected||busy)return
+    setBusy(true)
+    setMessageError(null)
+    try{
+      const response=await fetch(withCrmBasePath(`/api/connect/conversations/${selected.id}/contact`),{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({contact_id:contactId,expected_version:selected.row_version}),
+      })
+      const body=await response.json().catch(()=>null)
+      if(!response.ok)throw new Error(body?.message||"Não foi possível vincular o contato.")
+      setShowContactPicker(false)
+      await loadList()
+    }catch(e){setMessageError(e instanceof Error?e.message:"Falha ao vincular contato.")}
+    finally{setBusy(false)}
+  }
 
   async function changeStatus(action:"close"|"reopen") {
     if(!selected||busy)return
@@ -209,11 +246,33 @@ export function ConnectInbox() {
                   {selected.status==="closed"?"Reabrir":"Encerrar"}
                 </Button>
                 {selected.contact_id && <Button asChild variant="outline" size="sm"><Link href={`/app/contatos/${selected.contact_id}`}>Contato 360 <ArrowUpRight className="size-3"/></Link></Button>}
+                <Button variant="outline" size="sm" disabled={busy||mode==="demo"||(Boolean(selected.assigned_to)&&selected.assigned_to!==me&&!["owner","admin","manager"].includes(role||""))}
+                  onClick={()=>void openContactPicker()}>{selected.contact_id?"Alterar vínculo":"Vincular contato"}</Button>
                 {selected.assigned_to ? <Button variant="outline" size="sm" disabled={busy||mode==="demo"||(!["owner","admin","manager"].includes(role||"")&&selected.assigned_to!==me)}
                   onClick={()=>void assign("release")}>Liberar</Button>
                   : <Button size="sm" disabled={busy||mode==="demo"} onClick={()=>void assign("take")}>Assumir</Button>}
               </div>
             </header>
+            {showContactPicker&&(
+              <div className="flex flex-col gap-2 border-b border-[#e5e9f0] bg-[#fcfcfd] px-5 py-4">
+                <label htmlFor="connect-contact-select" className="text-xs font-semibold text-[#566277]">Associar a um contato do CRM</label>
+                <p className="text-xs text-[#7a8493]">O vínculo será criado apenas após sua confirmação.</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select id="connect-contact-select" value={selectedContact}
+                    onChange={e=>setSelectedContact(e.target.value)}
+                    className="min-w-48 flex-1 rounded-lg border border-[#dce2eb] bg-white px-3 py-2 text-sm"
+                    disabled={loadingContacts||busy}>
+                    <option value="">{loadingContacts?"Carregando contatos...":"Selecione um contato"}</option>
+                    {contacts.map(contact=><option key={contact.id} value={contact.id}>
+                      {[contact.first_name,contact.last_name].filter(Boolean).join(" ")}{contact.email?` · ${contact.email}`:""}
+                    </option>)}
+                  </select>
+                  <Button size="sm" disabled={busy||loadingContacts||!selectedContact} onClick={()=>void linkContact(selectedContact)}>Confirmar</Button>
+                  {selected.contact_id&&<Button variant="outline" size="sm" disabled={busy} onClick={()=>void linkContact(null)}>Desvincular</Button>}
+                  <Button variant="ghost" size="sm" onClick={()=>setShowContactPicker(false)}>Cancelar</Button>
+                </div>
+              </div>
+            )}
             <div className="flex min-h-[450px] max-h-[610px] flex-col gap-4 overflow-y-auto bg-[#fafbfc] px-5 py-5" aria-live="polite">
               {loadingMessages ? <p className="text-sm text-[#718094]">Carregando histórico...</p>
                 : messages.length===0 ? <p className="py-12 text-center text-sm text-[#718094]">Nenhuma mensagem recebida nesta conversa.</p>
