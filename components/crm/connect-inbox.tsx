@@ -190,7 +190,7 @@ export function ConnectInbox() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-[#172033] sm:text-3xl">CLASSY Connect</h1>
-            <Badge variant="outline" className="border-[#b69a62] text-[#8d713f]">v0.2 · Recebimento</Badge>
+            <Badge variant="outline" className="border-border text-foreground">v0.2 · Recebimento</Badge>
           </div>
           <p className="mt-2 text-sm text-[#657185]">Central de conversas recebidas e distribuição de atendimentos.</p>
         </div>
@@ -200,14 +200,14 @@ export function ConnectInbox() {
       </div>
 
       <div className="mb-4 flex items-center gap-2 rounded-xl border border-[#d9dfe8] bg-white px-4 py-3 text-xs text-[#596578]">
-        <ShieldCheck className="size-4 shrink-0 text-[#9f854e]"/>
+        <ShieldCheck className="size-4 shrink-0 text-foreground"/>
         Mensagens somente recebidas. O envio automático, a IA e as campanhas permanecem desativados nesta versão.
       </div>
 
       <section className="grid min-h-[580px] gap-4 lg:grid-cols-[340px_minmax(0,1fr)]" aria-label="Caixa de entrada CLASSY Connect">
         <Card className="overflow-hidden rounded-2xl border-[#dfe4ed] bg-white p-0 shadow-sm">
           <div className="flex items-center justify-between border-b border-[#e5e9f0] px-4 py-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold"><Inbox className="size-4 text-[#9f854e]"/> Conversas</h2>
+            <h2 className="flex items-center gap-2 text-sm font-semibold"><Inbox className="size-4 text-foreground"/> Conversas</h2>
             <span className="text-xs text-[#6b778a]">{items.length} exibidas</span>
           </div>
           <div className="border-b border-[#e5e9f0] px-4 py-3">
@@ -224,12 +224,12 @@ export function ConnectInbox() {
               : items.length===0 ? <div className="px-5 py-16 text-center"><MessageCircle className="mx-auto mb-3 size-7 text-[#b3bcc9]"/><p className="text-sm font-medium">Nenhuma conversa registrada</p><p className="mt-1 text-xs text-[#7c8797]">{mode==="demo"?"Demonstração sem dados de clientes.":"Os atendimentos aparecerão após a integração autorizada dos canais."}</p></div>
               : items.map(item=>(
                 <button key={item.id} type="button" onClick={()=>{setShowContactPicker(false);setActive(item.id)}} aria-pressed={item.id===active}
-                  className={`w-full border-b border-[#eef0f4] px-4 py-4 text-left transition-colors hover:bg-[#f7f8fa] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#b69a62] ${item.id===active?"bg-[#f7f4ed]":""}`}>
+                  className={`w-full border-b border-[#eef0f4] px-4 py-4 text-left transition-colors hover:bg-[#f7f8fa] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${item.id===active?"bg-[#eef2f7]":""}`}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="truncate text-sm font-semibold text-[#192334]">{displayName(item)}</p>
                     <span className="shrink-0 text-[10px] text-[#8b96a6]">{item.last_message_at?dateTime(item.last_message_at):"—"}</span>
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-[11px] text-[#84703e]">
+                  <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
                     <span>{labels[item.provider]}</span><span className="text-[#c4cbd5]">·</span>
                     <span className="text-[#718094]">{statusLabels[item.status]}</span>
                   </div>
