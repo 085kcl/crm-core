@@ -50,6 +50,7 @@ export function ConnectInbox() {
   const [active,setActive]=useState<string|null>(null)
   const [mode,setMode]=useState("live")
   const [me,setMe]=useState<string|null>(null)
+  const [role,setRole]=useState<string|null>(null)
   const [loading,setLoading]=useState(true)
   const [loadingMessages,setLoadingMessages]=useState(false)
   const [busy,setBusy]=useState(false)
@@ -63,6 +64,7 @@ export function ConnectInbox() {
       const data=await getJson<InboxResponse>(`/api/connect/conversations?status=${filter}&limit=50`)
       setMode(data.mode)
       setMe(data.me||null)
+      setRole(data.role||null)
       setItems(data.items)
       setActive(previous=>data.items.some(item=>item.id===previous)?previous:(data.items[0]?.id||null))
     } catch(e) {setError(e instanceof Error?e.message:"Falha ao carregar conversas.");setItems([]);setActive(null)}
@@ -175,7 +177,7 @@ export function ConnectInbox() {
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {selected.contact_id && <Button asChild variant="outline" size="sm"><Link href={`/app/contatos/${selected.contact_id}`}>Contato 360 <ArrowUpRight className="size-3"/></Link></Button>}
-                {selected.assigned_to ? <Button variant="outline" size="sm" disabled={busy||mode==="demo"||(!["owner","admin","manager"].includes(items.length? "": "")&&selected.assigned_to!==me)}
+                {selected.assigned_to ? <Button variant="outline" size="sm" disabled={busy||mode==="demo"||(!["owner","admin","manager"].includes(role||"")&&selected.assigned_to!==me)}
                   onClick={()=>void assign("release")}>Liberar</Button>
                   : <Button size="sm" disabled={busy||mode==="demo"} onClick={()=>void assign("take")}>Assumir</Button>}
               </div>
