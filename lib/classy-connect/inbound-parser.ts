@@ -50,7 +50,8 @@ export function extractConnectInboundMessages(
   if (provider === "instagram" || provider === "messenger") {
     const ownId = str(event.id)
     const messaging = Array.isArray(event.messaging) ? event.messaging : []
-    for (const value of messaging.slice(0, 100)) {
+    if (messaging.length > 100) throw new Error("connect_batch_too_large")
+    for (const value of messaging) {
       const item = obj(value)
       const message = obj(item?.message)
       const sender = obj(item?.sender)
@@ -69,6 +70,7 @@ export function extractConnectInboundMessages(
   } else if (provider === "whatsapp") {
     const value = obj(event.value)
     const msgs = Array.isArray(value?.messages) ? value.messages : []
+    if (msgs.length > 100) throw new Error("connect_batch_too_large")
     const contacts = Array.isArray(value?.contacts) ? value.contacts : []
     const names = new Map<string, string>()
     for (const c of contacts.slice(0, 100)) {
@@ -78,7 +80,7 @@ export function extractConnectInboundMessages(
       const name = boundedName(profile?.name)
       if (waId && name) names.set(waId, name)
     }
-    for (const entry of msgs.slice(0, 100)) {
+    for (const entry of msgs) {
       const msg = obj(entry)
       if (!msg) continue
       const participant = validId(msg.from, 200)
