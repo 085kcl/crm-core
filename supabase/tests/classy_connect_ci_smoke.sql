@@ -167,4 +167,50 @@ $$;
 reset role;
 reset request.jwt.claim.sub;
 
+-- An incoming newer message reopens a closed conversation without duplicate events.
+update public.connect_conversations
+set status = 'closed', row_version = row_version + 1
+where workspace_id='11111111-1111-4111-8111-111111111111';
+
+do $
+declare
+  n integer;
+  e record;
+  inserted boolean := false;
+begin
+  select public.ingest_connect_webhook_events(
+    jsonb_build_array(jsonb_build_object(
+      'provider','whatsapp',
+      'external_account_id','test_phone_1',
+      'event_hash',repeat('c',64),
+      'event_kind','whatsapp.change',
+      'payload',jsonb_build_object('field','messages')
+    ))
+  ) into n;
+  if n <> 1 then raise exception 'new_inbound_event_not_queued'; end if;
+
+  for e in select * from public.claim_connect_events(1) loop
+    select public.record_connect_inbound_message(
+      e.event_id,'551199999999','wamid.new.2',
+      'Gostaria de retomar meu atendimento','text',now()+interval '1 second',null
+    ) into inserted;
+    if not inserted then raise exception 'new_message_not_inserted'; end if;
+    if not public.finish_connect_event(e.event_id,e.claim_id,true,null) then
+      raise exception 'new_event_not_acked';
+    end if;
+  end loop;
+  if not inserted then raise exception 'new_event_not_claimed'; end if;
+  if not exists (
+    select 1 from public.connect_conversations
+    where status='open' and row_version=6
+      and last_message_preview='Gostaria de retomar meu atendimento'
+  ) then
+    raise exception 'new_inbound_failed_to_reopen_closed_conversation';
+  end if;
+  if (select count(*) from public.connect_messages) <> 2 then
+    raise exception 'new_inbound_duplicate_or_missing_message';
+  end if;
+end;
+$;
+
 select 'CLASSY Connect isolated SQL smoke passed' as result;
