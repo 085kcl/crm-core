@@ -1,0 +1,75 @@
+name: CLASSY Connect PostgreSQL isolation smoke
+
+on:
+  push:
+    branches:
+      - "feat/**"
+      - "fix/**"
+    paths:
+      - "supabase/migrations/20261114*_crm_connect_*.sql"
+      - "supabase/tests/classy_connect_ci_*.sql"
+      - ".github/workflows/classy-connect-sql.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/20261114*_crm_connect_*.sql"
+      - "supabase/tests/classy_connect_ci_*.sql"
+      - ".github/workflows/classy-connect-sql.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start disposable PostgreSQL 17 with no network
+        run: |
+          docker run -d --name classy-connect-postgres --network none \
+            -e POSTGRES_PASSWORD=ci-test-only-password \
+            -e POSTGRES_DB=connect_ci \
+            postgres:17-alpine
+
+      - name: Wait until PostgreSQL is ready
+        run: |
+          for i in $(seq 1 40); do
+            if docker exec classy-connect-postgres pg_isready -U postgres -d connect_ci >/dev/null 2>&1 \
+               && docker exec classy-connect-postgres psql -X -U postgres -d connect_ci -tAc "select 1" >/dev/null 2>&1; then
+              sleep 3
+              if docker exec classy-connect-postgres pg_isready -U postgres -d connect_ci >/dev/null 2>&1 \
+                 && docker exec classy-connect-postgres psql -X -U postgres -d connect_ci -tAc "select 1" >/dev/null 2>&1; then
+                exit 0
+              fi
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Bootstrap isolated Supabase-like schema
+        run: |
+          docker exec -i classy-connect-postgres psql -X -v ON_ERROR_STOP=1 -U postgres -d connect_ci \
+            < supabase/tests/classy_connect_ci_bootstrap.sql
+
+      - name: Run CLASSY Connect v0.1 migration
+        run: |
+          docker exec -i classy-connect-postgres psql -X -v ON_ERROR_STOP=1 -U postgres -d connect_ci \
+            < supabase/migrations/20261114160000_crm_connect_meta_ingress.sql
+
+      - name: Run CLASSY Connect v0.2 migration
+        run: |
+          docker exec -i classy-connect-postgres psql -X -v ON_ERROR_STOP=1 -U postgres -d connect_ci \
+            < supabase/migrations/20261114170000_crm_connect_inbox_v02.sql
+
+      - name: Verify SQL functions, RLS, tenant isolation and replay
+        run: |
+          docker exec -i classy-connect-postgres psql -X -v ON_ERROR_STOP=1 -U postgres -d connect_ci \
+            < supabase/tests/classy_connect_ci_smoke.sql
+
+      - name: Remove disposable database
+        if: always()
+        run: docker rm -f classy-connect-postgres || true
