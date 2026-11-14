@@ -115,3 +115,49 @@ test("Internal processor records inbound message and acknowledges event after pe
   }
  }
 })
+
+test("Queue health requires worker secret and returns aggregate-only operational data",async()=>{
+ const {NextRequest}=await import("next/server.js")
+ const {GET}=await vite.ssrLoadModule("/app/api/internal/connect/health/route.ts")
+ const previous={
+  CONNECT_WORKER_TOKEN:process.env.CONNECT_WORKER_TOKEN,
+  SUPABASE_URL:process.env.SUPABASE_URL,
+  SUPABASE_SECRET_KEY:process.env.SUPABASE_SECRET_KEY,
+ }
+ const beforeFetch=globalThis.fetch
+ let calls=0
+ process.env.CONNECT_WORKER_TOKEN="test-worker-secret-only-more-than-thirty-two-chars"
+ process.env.SUPABASE_URL="https://supabase.example.invalid"
+ process.env.SUPABASE_SECRET_KEY="sb_secret_test_only"
+ globalThis.fetch=async(url)=>{
+   calls++
+   assert.match(String(url),/\/rest\/v1\/rpc\/connect_ingress_health$/)
+   return Response.json({
+     queued:2,processing:1,retry_wait:3,dead_letters:0,
+     processed:11,active_channels:2,oldest_pending_at:"2026-11-14T14:00:00Z",
+     payload:"sensitive-data-must-not-leak",
+   })
+ }
+ try{
+   const base="https://crm.example.invalid/api/internal/connect/health"
+   assert.equal((await GET(new NextRequest(base))).status,401)
+   assert.equal(calls,0)
+   const result=await GET(new NextRequest(base,{
+     headers:{authorization:`Bearer ${process.env.CONNECT_WORKER_TOKEN}`},
+   }))
+   assert.equal(result.status,200)
+   assert.equal(result.headers.get("cache-control"),"no-store")
+   const body=await result.json()
+   assert.equal(body.queued,2)
+   assert.equal(body.retry_wait,3)
+   assert.equal(body.processed,11)
+   assert.equal(body.payload,undefined)
+   assert.equal(calls,1)
+ }finally{
+   globalThis.fetch=beforeFetch
+   for(const [key,value] of Object.entries(previous)){
+     if(value===undefined)delete process.env[key]
+     else process.env[key]=value
+   }
+ }
+})
