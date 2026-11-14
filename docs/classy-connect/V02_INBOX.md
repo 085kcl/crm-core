@@ -82,3 +82,15 @@ Supabase. (2026). *Supabase Changelog*. https://supabase.com/changelog.md
 - Este ambiente de teste **simula parcialmente** o Supabase. Não substitui validação das migrations completas no Supabase de staging, nem aplicação na infraestrutura oficial.
 - A consulta de projetos conectados mostrou somente `CRM-CORE`; por isso a execução das migrations no projeto hospedado **não ocorreu**.
 - Antes de live, revisar consentimento, retenção/descarte de payloads, limites da Meta, segregação de atendimento, backups e incidentes, além de tornar a PR pronta para merge após validação.
+
+## V0.2 — reforços de segurança, operação e privacidade
+
+- O ingresso Meta limita **o corpo recebido durante a leitura a 256 KiB**, não dependendo somente do cabeçalho `Content-Length`. Lotes legítimos maiores precisarão de decisão técnica explícita antes da ativação da Meta.
+- Ao concluir com sucesso um evento, `finish_connect_event` substitui o payload bruto por `{}`, mantendo o hash do evento para deduplicação. Eventos que falharem permanecem disponíveis para retentativas e exigem política formal de retenção e descarte.
+- A fila possui **leitura agregada, sem PII**, pela função exclusiva `service_role` `connect_ingress_health()` e pela rota interna `GET /api/internal/connect/health`; o endpoint exige o mesmo segredo de servidor `CONNECT_WORKER_TOKEN` usado pelo processador.
+- O painel apresenta paginação de conversas com até 50 itens por página, mantém a sessão do CRM com tentativa de renovação e descarta respostas atrasadas que já não correspondam ao filtro/conversa ativa.
+- Testes automatizados incluem limites de payload, segregação por workspace, autenticação do monitor, redução de campos devolvidos pelo monitor e descarte de payload após sucesso.
+
+**Retenção LGPD:** ainda é necessária uma política documentada de prazos para eventos falhos, mensagens e conversas, fundamentada em finalidade e obrigações aplicáveis. Nenhuma limpeza programada ou descarte generalizado foi ativado. A exclusão de registros deve tratar implicações de auditoria, solicitações dos titulares e provas de execução, com parecer institucional anterior ao piloto.
+
+**Operação:** o worker é um endpoint autenticado, mas **nenhum agendador foi ativado**. Os indicadores internos não significam conexão Meta efetiva ou fluxo de atendimento operacional. Não publicar o monitor sem rate limiting e controle de acesso na borda.
