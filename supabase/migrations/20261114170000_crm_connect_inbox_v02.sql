@@ -366,3 +366,34 @@ revoke all on function public.record_connect_inbound_message(uuid,text,text,text
 grant execute on function public.claim_connect_events(integer) to service_role;
 grant execute on function public.finish_connect_event(uuid,uuid,boolean,text) to service_role;
 grant execute on function public.record_connect_inbound_message(uuid,text,text,text,text,timestamptz,text) to service_role;
+
+-- Operational queue status only: no message text, handles or tenant identifiers.
+-- The RPC is internal, never exposed to authenticated browser clients.
+create or replace function public.connect_ingress_health()
+returns jsonb
+language sql stable security definer set search_path = ''
+as $connect_health$
+  select jsonb_build_object(
+    'queued', count(*) filter (where e.status = 'queued'),
+    'processing', count(*) filter (where e.status = 'processing'),
+    'retry_wait', count(*) filter (
+      where e.status = 'failed' and e.attempt_count < 5
+    ),
+    'dead_letters', count(*) filter (
+      where e.status = 'failed' and e.attempt_count >= 5
+    ),
+    'processed', count(*) filter (where e.status = 'processed'),
+    'oldest_pending_at', min(e.received_at) filter (
+      where e.status in ('queued', 'processing', 'failed')
+        and e.attempt_count < 5
+    ),
+    'active_channels', (
+      select count(*) from public.connect_channels c where c.active
+    )
+  )
+  from public.connect_webhook_events e;
+$connect_health$;
+
+revoke all on function public.connect_ingress_health()
+  from public, anon, authenticated;
+grant execute on function public.connect_ingress_health() to service_role;
