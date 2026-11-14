@@ -202,6 +202,7 @@ begin
   return new;
 end;
 $;
+revoke all on function private.connect_audit_control_changes() from public, anon, authenticated;
 create trigger trg_connect_conversation_control_audit
   after update on public.connect_conversations
   for each row execute function private.connect_audit_control_changes();
