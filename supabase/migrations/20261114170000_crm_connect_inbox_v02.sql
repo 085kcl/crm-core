@@ -182,7 +182,7 @@ create policy connect_control_audit_manager_select
 
 create or replace function private.connect_audit_control_changes()
 returns trigger language plpgsql security definer set search_path = ''
-as $
+as $connect_audit$
 begin
   if old.assigned_to is distinct from new.assigned_to
      or old.status is distinct from new.status
@@ -201,7 +201,7 @@ begin
   end if;
   return new;
 end;
-$;
+$connect_audit$;
 revoke all on function private.connect_audit_control_changes() from public, anon, authenticated;
 create trigger trg_connect_conversation_control_audit
   after update on public.connect_conversations
