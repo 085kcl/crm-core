@@ -264,8 +264,12 @@ as $$
 declare v_changed integer;
 begin
   if p_success is null then raise exception 'invalid_result'; end if;
+  -- Clear raw webhook contents on successful acknowledgement: the message
+  -- is already persisted in its tenant-scoped table, while the event hash
+  -- remains for replay deduplication. Failed events retain payload for retry.
   update public.connect_webhook_events e
     set status = case when p_success then 'processed' else 'failed' end,
+        payload = case when p_success then '{}'::jsonb else e.payload end,
         processed_at = case when p_success then now() else null end,
         last_error_code = case when p_success then null else left(coalesce(p_error_code,'processing_failed'),80) end,
         next_attempt_at = case when p_success or e.attempt_count >= 5
