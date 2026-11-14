@@ -38,7 +38,14 @@ jobs:
       - name: Wait until PostgreSQL is ready
         run: |
           for i in $(seq 1 40); do
-            if docker exec classy-connect-postgres pg_isready -U postgres -d connect_ci; then exit 0; fi
+            if docker exec classy-connect-postgres pg_isready -U postgres -d connect_ci >/dev/null 2>&1 \
+               && docker exec classy-connect-postgres psql -X -U postgres -d connect_ci -tAc "select 1" >/dev/null 2>&1; then
+              sleep 3
+              if docker exec classy-connect-postgres pg_isready -U postgres -d connect_ci >/dev/null 2>&1 \
+                 && docker exec classy-connect-postgres psql -X -U postgres -d connect_ci -tAc "select 1" >/dev/null 2>&1; then
+                exit 0
+              fi
+            fi
             sleep 1
           done
           exit 1
