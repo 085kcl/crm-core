@@ -65,6 +65,13 @@ begin
      or (select count(*) from public.connect_messages) <> 1 then
     raise exception 'unexpected_conversation_or_message_count';
   end if;
+  -- Successful acknowledgements must erase raw PII but keep deduplication hashes.
+  if exists (
+    select 1 from public.connect_webhook_events
+    where status = 'processed' and payload <> '{}'::jsonb
+  ) then
+    raise exception 'processed_meta_payload_not_redacted';
+  end if;
 end;
 $$;
 
