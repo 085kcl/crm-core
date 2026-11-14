@@ -11,6 +11,8 @@
 - Processamento em lote de eventos pela rota interna `POST /api/internal/connect/process` (somente servidor, protegido por segredo específico).
 - Normalização recebida: WhatsApp Cloud API e Instagram/Messenger (`messaging`). Atualizações sem mensagem e comentários não viram conversas artificialmente.
 - Deduplicação por conta + `provider_message_id`; idempotência na RPC.
+- Mensagens novas reabrem automaticamente conversas encerradas ou em espera, apenas quando o evento é mais recente do que o último registrado.
+
 - Auditoria mínima de atribuição, status e vínculo com contato, sem duplicar corpos de mensagens ou dados pessoais no log de controle.
 - API autenticada de conversas e mensagens com `workspace_id` do cookie de sessão validado, filtragem e paginação; lista de contatos para vínculo com campos mínimos (até 100 recentes).
 - Atribuição de conversa para o próprio usuário (assumir/liberar), fechamento/reabertura e vínculo manual/desvínculo com um contato do CRM; todos protegidos por papel, workspace, same-origin e concorrência otimista `row_version`.
@@ -68,3 +70,11 @@ Meta. (s.d.). *Get started with webhooks*. https://developers.facebook.com/docs/
 Supabase. (s.d.). *Row Level Security*. https://supabase.com/docs/guides/database/postgres/row-level-security
 
 Supabase. (2026). *Supabase Changelog*. https://supabase.com/changelog.md
+
+## Evidência de validação e limites
+
+- Workflow dedicado: `.github/workflows/classy-connect-sql.yml` executa as migrations v0.1/v0.2 em PostgreSQL 17 descartável, sem rede, com roles simuladas (anon, authenticated, service_role).
+- `supabase/tests/classy_connect_ci_smoke.sql` cobre persistência, deduplicação, token de claim, RLS por papel/workspace, contatos cross-tenant, auditoria e reabertura de conversas.
+- Este ambiente de teste **simula parcialmente** o Supabase. Não substitui validação das migrations completas no Supabase de staging, nem aplicação na infraestrutura oficial.
+- A consulta de projetos conectados mostrou somente `CRM-CORE`; por isso a execução das migrations no projeto hospedado **não ocorreu**.
+- Antes de live, revisar consentimento, retenção/descarte de payloads, limites da Meta, segregação de atendimento, backups e incidentes, além de tornar a PR pronta para merge após validação.
