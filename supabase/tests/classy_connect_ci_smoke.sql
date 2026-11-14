@@ -172,7 +172,7 @@ update public.connect_conversations
 set status = 'closed', row_version = row_version + 1
 where workspace_id='11111111-1111-4111-8111-111111111111';
 
-do $
+do $connect_reopen$
 declare
   n integer;
   e record;
@@ -211,6 +211,6 @@ begin
     raise exception 'new_inbound_duplicate_or_missing_message';
   end if;
 end;
-$;
+$connect_reopen$;
 
 select 'CLASSY Connect isolated SQL smoke passed' as result;
