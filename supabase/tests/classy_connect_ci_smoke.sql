@@ -84,11 +84,28 @@ begin
     )
     or has_function_privilege(
       'authenticated','public.record_connect_inbound_message(uuid,text,text,text,text,timestamptz,text)','EXECUTE'
+    )
+    or has_function_privilege(
+      'authenticated','public.connect_ingress_health()','EXECUTE'
     ) then
     raise exception 'restricted_provider_data_or_rpc_exposed';
   end if;
 end;
 $$;
+
+do $health_check$
+declare
+  v jsonb;
+begin
+  select public.connect_ingress_health() into v;
+  if (v->>'processed')::integer <> 2
+     or (v->>'queued')::integer <> 0
+     or (v->>'active_channels')::integer <> 2
+     or (v->>'dead_letters')::integer <> 0 then
+    raise exception 'connect_health_summary_incorrect: %', v;
+  end if;
+end;
+$health_check$;
 
 set role authenticated;
 set request.jwt.claim.sub = '33333333-3333-4333-8333-333333333333';
