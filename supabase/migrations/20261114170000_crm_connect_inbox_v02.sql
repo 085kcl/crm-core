@@ -150,6 +150,59 @@ create policy connect_messages_select on public.connect_messages
     and private.current_workspace_role(workspace_id)::text
       in ('owner','admin','manager','sales','marketing','support'));
 
+-- Minimal audit of human workflow changes; no message bodies, handles or contact PII.
+create table public.connect_conversation_control_audit (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid not null references public.workspaces(id) on delete cascade,
+  conversation_id uuid not null,
+  actor_user_id uuid,
+  previous_assigned_to uuid,
+  assigned_to uuid,
+  previous_status text,
+  status text,
+  previous_contact_id uuid,
+  contact_id uuid,
+  changed_at timestamptz not null default now(),
+  constraint connect_conversation_control_audit_conversation_fkey
+    foreign key (workspace_id, conversation_id)
+    references public.connect_conversations(workspace_id, id) on delete cascade
+);
+create index idx_connect_conversation_control_audit
+  on public.connect_conversation_control_audit(workspace_id, conversation_id, changed_at desc);
+alter table public.connect_conversation_control_audit enable row level security;
+revoke all on public.connect_conversation_control_audit from public, anon, authenticated;
+grant all on public.connect_conversation_control_audit to service_role;
+grant select on public.connect_conversation_control_audit to authenticated;
+create policy connect_control_audit_manager_select
+  on public.connect_conversation_control_audit for select to authenticated
+  using (private.current_workspace_role(workspace_id)::text in ('owner','admin','manager'));
+
+create or replace function private.connect_audit_control_changes()
+returns trigger language plpgsql security definer set search_path = ''
+as $
+begin
+  if old.assigned_to is distinct from new.assigned_to
+     or old.status is distinct from new.status
+     or old.contact_id is distinct from new.contact_id then
+    insert into public.connect_conversation_control_audit (
+      workspace_id, conversation_id, actor_user_id,
+      previous_assigned_to, assigned_to,
+      previous_status, status,
+      previous_contact_id, contact_id
+    ) values (
+      new.workspace_id, new.id, auth.uid(),
+      old.assigned_to, new.assigned_to,
+      old.status, new.status,
+      old.contact_id, new.contact_id
+    );
+  end if;
+  return new;
+end;
+$;
+create trigger trg_connect_conversation_control_audit
+  after update on public.connect_conversations
+  for each row execute function private.connect_audit_control_changes();
+
 -- Event queue leases. Enforce bounded retries and protect against stale acknowledgments.
 alter table public.connect_webhook_events
   add column claim_token uuid,
