@@ -11,8 +11,8 @@
 - Processamento em lote de eventos pela rota interna `POST /api/internal/connect/process` (somente servidor, protegido por segredo específico).
 - Normalização recebida: WhatsApp Cloud API e Instagram/Messenger (`messaging`). Atualizações sem mensagem e comentários não viram conversas artificialmente.
 - Deduplicação por conta + `provider_message_id`; idempotência na RPC.
-- API autenticada de conversas e mensagens com `workspace_id` do cookie de sessão validado, filtragem e paginação.
-- Atribuição de conversa para o próprio usuário (assumir/liberar), com controle por papel, verificação de responsável ativo, proteção same-origin e concorrência otimista `row_version`.
+- API autenticada de conversas e mensagens com `workspace_id` do cookie de sessão validado, filtragem e paginação; lista de contatos para vínculo com campos mínimos (até 100 recentes).
+- Atribuição de conversa para o próprio usuário (assumir/liberar), fechamento/reabertura e vínculo manual/desvínculo com um contato do CRM; todos protegidos por papel, workspace, same-origin e concorrência otimista `row_version`.
 - Página `/app/connect` (sujeita ao base path `/crm`) com caixa de entrada mobile-first, conversas, mensagens e responsabilidade.
 
 ## Restrições expressas
