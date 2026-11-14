@@ -14,6 +14,37 @@ function noStoreHeaders() {
   return { "Cache-Control": "no-store" }
 }
 
+// Read at most the configured body limit, even with missing/forged Content-Length.
+// The signature below must still be calculated over the original, exact bytes.
+async function readBoundedBody(request: NextRequest): Promise<string | null> {
+  if (!request.body) return ""
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
+  let bytes = 0
+  try {
+    while (true) {
+      const part = await reader.read()
+      if (part.done) break
+      bytes += part.value.byteLength
+      if (bytes > MAX_WEBHOOK_BODY_BYTES) {
+        await reader.cancel().catch(() => undefined)
+        return null
+      }
+      chunks.push(part.value)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+  const data = new Uint8Array(bytes)
+  let offset = 0
+  for (const chunk of chunks) {
+    data.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return new TextDecoder("utf-8", { fatal: true }).decode(data)
+}
+
+
 // Meta subscription handshake. Does not authenticate customers or alter CRM data.
 export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams
@@ -44,14 +75,14 @@ export async function POST(request: NextRequest) {
       { status: 413, headers: noStoreHeaders() })
   }
 
-  let rawBody: string
+  let rawBody: string | null
   try {
-    rawBody = await request.text()
+    rawBody = await readBoundedBody(request)
   } catch {
     return NextResponse.json({ code: "body_unreadable", correlation_id: correlationId },
       { status: 400, headers: noStoreHeaders() })
   }
-  if (new TextEncoder().encode(rawBody).byteLength > MAX_WEBHOOK_BODY_BYTES) {
+  if (rawBody === null) {
     return NextResponse.json({ code: "payload_too_large", correlation_id: correlationId },
       { status: 413, headers: noStoreHeaders() })
   }
