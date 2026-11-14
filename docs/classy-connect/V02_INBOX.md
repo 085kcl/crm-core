@@ -59,6 +59,10 @@
 
 Nenhum valor real de segredo é necessário nem deve ser enviado por mensagem.
 
+## Identidade e experiência
+
+O Manual de Branding CLASSY — Volume II estabelece preto, branco e neutros como base e dourado como detalhe, mas informa que as especificações cromáticas finais ainda estão pendentes de aprovação. Assim, a v0.2 usa os tokens já disponíveis no CRM Core e não introduz nova paleta institucional nem recria o logotipo. A direção final de UI e os códigos HEX dependem da validação formal das especificações da marca.
+
 ## Próxima versão
 
 v0.3: editor de automações declarativas, camada explícita de consentimentos, envio Meta permitido por canal/janela, templates, handoff, observabilidade e governança de campanhas, após homologação do recebimento.
