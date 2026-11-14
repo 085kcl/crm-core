@@ -340,7 +340,12 @@ begin
   if v_inserted is not null then
     update public.connect_conversations
        set last_message_at = v_time,
-           last_message_preview = left(p_body,180)
+           last_message_preview = left(p_body,180),
+           status = 'open',
+           row_version = case
+             when status <> 'open' then row_version + 1
+             else row_version
+           end
      where id = v_conversation_id
        and (last_message_at is null or last_message_at <= v_time);
   end if;
