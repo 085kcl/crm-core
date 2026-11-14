@@ -131,3 +131,38 @@ test("Meta POST rejects bad signatures; verified events persist with server-side
     }
   }
 })
+
+test("Meta ingress caps streamed bodies even when Content-Length is forged", async () => {
+  const { NextRequest } = await import("next/server.js")
+  const { POST } = await vite.ssrLoadModule("/app/api/integrations/meta/webhook/route.ts")
+  const priorSecret = process.env.META_APP_SECRET
+  const priorToken = process.env.META_WEBHOOK_VERIFY_TOKEN
+  const oldFetch = globalThis.fetch
+  process.env.META_APP_SECRET = "meta-secret-unit-test"
+  process.env.META_WEBHOOK_VERIFY_TOKEN = "meta-verify-unit-test"
+  let networkCalls = 0
+  globalThis.fetch = async () => {networkCalls++;return Response.json({})}
+  try {
+    const hugeBody = JSON.stringify({object:"instagram",entry:[],padding:"x".repeat(280000)})
+    const response = await POST(new NextRequest(
+      "https://crm.example.invalid/api/integrations/meta/webhook", {
+        method:"POST",
+        headers:{
+          "content-type":"application/json",
+          "content-length":"1",
+          "x-hub-signature-256":"sha256="+"0".repeat(64),
+        },
+        body:hugeBody,
+      },
+    ))
+    assert.equal(response.status,413)
+    assert.equal((await response.json()).code,"payload_too_large")
+    assert.equal(networkCalls,0)
+  } finally {
+    globalThis.fetch=oldFetch
+    if(priorSecret===undefined)delete process.env.META_APP_SECRET
+    else process.env.META_APP_SECRET=priorSecret
+    if(priorToken===undefined)delete process.env.META_WEBHOOK_VERIFY_TOKEN
+    else process.env.META_WEBHOOK_VERIFY_TOKEN=priorToken
+  }
+})
