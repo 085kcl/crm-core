@@ -132,7 +132,7 @@ export function ConnectInbox() {
     setLoadingContacts(true)
     setMessageError(null)
     try {
-      const response=await getJson<{contacts:ContactOption[]}>(`/api/contacts`)
+      const response=await getJson<{contacts:ContactOption[]}>(`/api/connect/contact-options`)
       setContacts(response.contacts||[])
     }catch(e){setMessageError(e instanceof Error?e.message:"Falha ao carregar contatos.")}
     finally{setLoadingContacts(false)}
