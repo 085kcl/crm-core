@@ -87,7 +87,8 @@ begin
 
   if tg_op = 'UPDATE' then
     if new.assigned_to is distinct from old.assigned_to
-       or new.status is distinct from old.status then
+       or new.status is distinct from old.status
+       or new.contact_id is distinct from old.contact_id then
       if new.row_version <> old.row_version + 1 then
         raise exception 'connect_revision_invalid' using errcode = '23514';
       end if;
@@ -111,7 +112,7 @@ revoke all on public.connect_conversations, public.connect_messages
 
 grant all on public.connect_conversations, public.connect_messages to service_role;
 grant select on public.connect_conversations, public.connect_messages to authenticated;
-grant update (assigned_to, row_version, status) on public.connect_conversations to authenticated;
+grant update (assigned_to, row_version, status, contact_id) on public.connect_conversations to authenticated;
 
 create policy connect_conversations_select on public.connect_conversations
   for select to authenticated
