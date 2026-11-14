@@ -86,7 +86,8 @@ begin
   end if;
 
   if tg_op = 'UPDATE' then
-    if new.assigned_to is distinct from old.assigned_to then
+    if new.assigned_to is distinct from old.assigned_to
+       or new.status is distinct from old.status then
       if new.row_version <> old.row_version + 1 then
         raise exception 'connect_revision_invalid' using errcode = '23514';
       end if;
@@ -110,7 +111,7 @@ revoke all on public.connect_conversations, public.connect_messages
 
 grant all on public.connect_conversations, public.connect_messages to service_role;
 grant select on public.connect_conversations, public.connect_messages to authenticated;
-grant update (assigned_to, row_version) on public.connect_conversations to authenticated;
+grant update (assigned_to, row_version, status) on public.connect_conversations to authenticated;
 
 create policy connect_conversations_select on public.connect_conversations
   for select to authenticated
@@ -120,12 +121,26 @@ create policy connect_conversations_select on public.connect_conversations
 
 create policy connect_conversations_assign on public.connect_conversations
   for update to authenticated
-  using (private.is_workspace_member(workspace_id)
-    and private.current_workspace_role(workspace_id)::text
-      in ('owner','admin','manager','sales','marketing','support'))
-  with check (private.is_workspace_member(workspace_id)
-    and private.current_workspace_role(workspace_id)::text
-      in ('owner','admin','manager','sales','marketing','support'));
+  using (
+    private.is_workspace_member(workspace_id)
+    and (
+      private.current_workspace_role(workspace_id)::text in ('owner','admin','manager')
+      or (
+        private.current_workspace_role(workspace_id)::text in ('sales','marketing','support')
+        and (assigned_to is null or assigned_to = (select auth.uid()))
+      )
+    )
+  )
+  with check (
+    private.is_workspace_member(workspace_id)
+    and (
+      private.current_workspace_role(workspace_id)::text in ('owner','admin','manager')
+      or (
+        private.current_workspace_role(workspace_id)::text in ('sales','marketing','support')
+        and (assigned_to is null or assigned_to = (select auth.uid()))
+      )
+    )
+  );
 
 create policy connect_messages_select on public.connect_messages
   for select to authenticated
