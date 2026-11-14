@@ -118,6 +118,24 @@ export function ConnectInbox() {
     finally{setBusy(false)}
   }
 
+
+  async function changeStatus(action:"close"|"reopen") {
+    if(!selected||busy)return
+    setBusy(true)
+    setMessageError(null)
+    try {
+      const response=await fetch(withCrmBasePath(`/api/connect/conversations/${selected.id}/status`),{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action,expected_version:selected.row_version}),
+      })
+      const result=await response.json().catch(()=>null)
+      if(!response.ok)throw new Error(result?.message||"Falha na atualização.")
+      await loadList()
+    }catch(e){setMessageError(e instanceof Error?e.message:"Falha na atualização.")}
+    finally{setBusy(false)}
+  }
+
   return (
     <main className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -184,7 +202,12 @@ export function ConnectInbox() {
                 <h2 className="truncate text-base font-semibold text-[#1a2637]">{displayName(selected)}</h2>
                 <p className="mt-1 text-xs text-[#748094]">{labels[selected.provider]} · {statusLabels[selected.status]} · {selected.assigned_to?(selected.assigned_to===me?"Atribuída a você":"Atribuída a outro atendente"):"Sem responsável"}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm"
+                  disabled={busy||mode==="demo"||(Boolean(selected.assigned_to)&&selected.assigned_to!==me&&!["owner","admin","manager"].includes(role||""))}
+                  onClick={()=>void changeStatus(selected.status==="closed"?"reopen":"close")}>
+                  {selected.status==="closed"?"Reabrir":"Encerrar"}
+                </Button>
                 {selected.contact_id && <Button asChild variant="outline" size="sm"><Link href={`/app/contatos/${selected.contact_id}`}>Contato 360 <ArrowUpRight className="size-3"/></Link></Button>}
                 {selected.assigned_to ? <Button variant="outline" size="sm" disabled={busy||mode==="demo"||(!["owner","admin","manager"].includes(role||"")&&selected.assigned_to!==me)}
                   onClick={()=>void assign("release")}>Liberar</Button>
