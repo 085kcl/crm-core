@@ -7,7 +7,7 @@ import { ArrowUpRight, CircleUserRound, Inbox, Loader2, MessageCircle, RefreshCw
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { withCrmBasePath } from "@/lib/crm-base-path"
+import { fetchWithSessionRetry } from "@/lib/client-fetch"
 
 type Conversation = {
   id:string
@@ -38,7 +38,7 @@ const displayName=(item:Conversation)=>item.participant_display_name?.trim()||
   `Contato ···${item.external_participant_id.slice(-5)}`
 
 async function getJson<T>(path:string):Promise<T> {
-  const response=await fetch(withCrmBasePath(path),{cache:"no-store"})
+  const response=await fetchWithSessionRetry(path,{cache:"no-store"})
   const body=await response.json().catch(()=>null)
   if (!response.ok) throw new Error(body?.message||"Não foi possível carregar os dados.")
   return body as T
@@ -50,6 +50,7 @@ export function ConnectInbox() {
   const [messages,setMessages]=useState<Message[]>([])
   const [messageThreadId,setMessageThreadId]=useState<string|null>(null)
   const requestCounter=useRef(0)
+  const listRequestCounter=useRef(0)
   const [active,setActive]=useState<string|null>(null)
   const [mode,setMode]=useState("live")
   const [me,setMe]=useState<string|null>(null)
@@ -65,17 +66,25 @@ export function ConnectInbox() {
   const [loadingContacts,setLoadingContacts]=useState(false)
 
   const loadList=useCallback(async()=>{
+    const requestId=++listRequestCounter.current
     setLoading(true)
     setError(null)
     try {
       const data=await getJson<InboxResponse>(`/api/connect/conversations?status=${filter}&limit=50`)
+      if(requestId!==listRequestCounter.current)return
       setMode(data.mode)
       setMe(data.me||null)
       setRole(data.role||null)
       setItems(data.items)
       setActive(previous=>data.items.some(item=>item.id===previous)?previous:(data.items[0]?.id||null))
-    } catch(e) {setError(e instanceof Error?e.message:"Falha ao carregar conversas.");setItems([]);setActive(null)}
-    finally {setLoading(false)}
+    } catch(e) {
+      if(requestId!==listRequestCounter.current)return
+      setError(e instanceof Error?e.message:"Falha ao carregar conversas.")
+      setItems([])
+      setActive(null)
+    } finally {
+      if(requestId===listRequestCounter.current)setLoading(false)
+    }
   },[filter])
 
   const loadThread=useCallback(async(id:string)=>{
@@ -121,7 +130,7 @@ export function ConnectInbox() {
     setBusy(true)
     setMessageError(null)
     try{
-      const response=await fetch(withCrmBasePath(`/api/connect/conversations/${selected.id}/assignment`),{
+      const response=await fetchWithSessionRetry(`/api/connect/conversations/${selected.id}/assignment`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({action,expected_version:selected.row_version}),
@@ -154,7 +163,7 @@ export function ConnectInbox() {
     setBusy(true)
     setMessageError(null)
     try{
-      const response=await fetch(withCrmBasePath(`/api/connect/conversations/${selected.id}/contact`),{
+      const response=await fetchWithSessionRetry(`/api/connect/conversations/${selected.id}/contact`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({contact_id:contactId,expected_version:selected.row_version}),
@@ -172,7 +181,7 @@ export function ConnectInbox() {
     setBusy(true)
     setMessageError(null)
     try {
-      const response=await fetch(withCrmBasePath(`/api/connect/conversations/${selected.id}/status`),{
+      const response=await fetchWithSessionRetry(`/api/connect/conversations/${selected.id}/status`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({action,expected_version:selected.row_version}),
