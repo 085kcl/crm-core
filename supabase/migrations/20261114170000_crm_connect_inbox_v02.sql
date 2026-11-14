@@ -19,6 +19,7 @@ create table public.connect_conversations (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint connect_conversations_workspace_id_id_key unique (workspace_id, id),
+  constraint connect_conversations_workspace_id_id_channel_key unique (workspace_id, id, channel_id),
   constraint connect_conversations_channel_participant_key unique (channel_id, external_participant_id),
   constraint connect_conversations_channel_fkey
     foreign key (workspace_id, channel_id)
@@ -49,8 +50,8 @@ create table public.connect_messages (
   received_at timestamptz not null default now(),
   constraint connect_messages_channel_key unique (channel_id, provider_message_id),
   constraint connect_messages_conversation_fkey
-    foreign key (workspace_id, conversation_id)
-    references public.connect_conversations(workspace_id, id) on delete cascade,
+    foreign key (workspace_id, conversation_id, channel_id)
+    references public.connect_conversations(workspace_id, id, channel_id) on delete cascade,
   constraint connect_messages_channel_fkey
     foreign key (workspace_id, channel_id)
     references public.connect_channels(workspace_id, id) on delete cascade
