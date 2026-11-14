@@ -82,8 +82,17 @@ export function ConnectInbox() {
     finally {setLoadingMessages(false)}
   },[])
 
-  useEffect(()=>{void loadList()},[loadList])
-  useEffect(()=>{if(active)void loadThread(active);else setMessages([])},[active,loadThread])
+  useEffect(()=>{
+    const timer=window.setTimeout(()=>{void loadList()},0)
+    return ()=>window.clearTimeout(timer)
+  },[loadList])
+  useEffect(()=>{
+    const timer=window.setTimeout(()=>{
+      if(active)void loadThread(active)
+      else setMessages([])
+    },0)
+    return ()=>window.clearTimeout(timer)
+  },[active,loadThread])
   const selected=items.find(item=>item.id===active)||null
 
   async function refresh() {
