@@ -73,6 +73,7 @@ for each row execute function public.set_updated_at();
 create or replace function private.connect_validate_conversation_assignment()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 begin
@@ -104,6 +105,8 @@ $$;
 create trigger trg_connect_conversations_assignee
 before insert or update on public.connect_conversations
 for each row execute function private.connect_validate_conversation_assignment();
+
+revoke all on function private.connect_validate_conversation_assignment() from public, anon, authenticated;
 
 alter table public.connect_conversations enable row level security;
 alter table public.connect_messages enable row level security;
