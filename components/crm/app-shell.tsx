@@ -14,6 +14,7 @@ import {
   ContactRound,
   Gauge,
   Inbox,
+  MessagesSquare,
   KanbanSquare,
   LogOut,
   Settings2,
@@ -56,6 +57,7 @@ import { withCrmBasePath } from "@/lib/crm-base-path"
 const navItems = [
   { label: "Visão geral", icon: Gauge, href: "/app", enabled: true },
   { label: "Solicitações", icon: Inbox, href: "/app/solicitacoes", enabled: true },
+  { label: "CLASSY Connect", icon: MessagesSquare, href: "/app/connect", enabled: true },
   { label: "Contatos", icon: ContactRound, href: "/app/contatos", enabled: true },
   { label: "Empresas", icon: Building2, href: "/app/empresas", enabled: false },
   { label: "Leads", icon: UserRoundSearch, href: "/app/leads", enabled: false },
@@ -67,6 +69,7 @@ const navItems = [
 
 function pageLabel(pathname: string) {
   if (pathname.startsWith("/app/configuracoes")) return "Configurações do workspace"
+  if (pathname === "/app/connect") return "CLASSY Connect"
   if (pathname === "/app/solicitacoes") return "Solicitações"
   if (pathname.startsWith("/app/solicitacoes/")) return "Solicitação"
   if (pathname.startsWith("/app/contatos/")) return "Contato 360°"
