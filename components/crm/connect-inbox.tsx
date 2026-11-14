@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowUpRight, CircleUserRound, Inbox, Loader2, MessageCircle, RefreshCw, ShieldCheck } from "lucide-react"
 
@@ -48,6 +48,8 @@ export function ConnectInbox() {
   const [filter,setFilter]=useState<Filter>("all")
   const [items,setItems]=useState<Conversation[]>([])
   const [messages,setMessages]=useState<Message[]>([])
+  const [messageThreadId,setMessageThreadId]=useState<string|null>(null)
+  const requestCounter=useRef(0)
   const [active,setActive]=useState<string|null>(null)
   const [mode,setMode]=useState("live")
   const [me,setMe]=useState<string|null>(null)
@@ -77,14 +79,23 @@ export function ConnectInbox() {
   },[filter])
 
   const loadThread=useCallback(async(id:string)=>{
+    const requestId=++requestCounter.current
     setLoadingMessages(true)
     setMessageError(null)
     setMessages([])
+    setMessageThreadId(null)
     try {
       const data=await getJson<MessagesResponse>(`/api/connect/conversations/${id}/messages`)
-      setMessages(data.messages)
-    } catch(e) {setMessageError(e instanceof Error?e.message:"Falha ao abrir a conversa.")}
-    finally {setLoadingMessages(false)}
+      if(requestId===requestCounter.current){
+        setMessages(data.messages)
+        setMessageThreadId(id)
+      }
+    } catch(e) {
+      if(requestId===requestCounter.current)
+        setMessageError(e instanceof Error?e.message:"Falha ao abrir a conversa.")
+    } finally {
+      if(requestId===requestCounter.current)setLoadingMessages(false)
+    }
   },[])
 
   useEffect(()=>{
@@ -94,7 +105,7 @@ export function ConnectInbox() {
   useEffect(()=>{
     const timer=window.setTimeout(()=>{
       if(active)void loadThread(active)
-      else setMessages([])
+      else {requestCounter.current++;setMessages([]);setMessageThreadId(null)}
     },0)
     return ()=>window.clearTimeout(timer)
   },[active,loadThread])
@@ -212,7 +223,7 @@ export function ConnectInbox() {
               : error ? <p role="alert" className="px-4 py-8 text-sm text-red-700">{error}</p>
               : items.length===0 ? <div className="px-5 py-16 text-center"><MessageCircle className="mx-auto mb-3 size-7 text-[#b3bcc9]"/><p className="text-sm font-medium">Nenhuma conversa registrada</p><p className="mt-1 text-xs text-[#7c8797]">{mode==="demo"?"Demonstração sem dados de clientes.":"Os atendimentos aparecerão após a integração autorizada dos canais."}</p></div>
               : items.map(item=>(
-                <button key={item.id} type="button" onClick={()=>setActive(item.id)} aria-pressed={item.id===active}
+                <button key={item.id} type="button" onClick={()=>{setShowContactPicker(false);setActive(item.id)}} aria-pressed={item.id===active}
                   className={`w-full border-b border-[#eef0f4] px-4 py-4 text-left transition-colors hover:bg-[#f7f8fa] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#b69a62] ${item.id===active?"bg-[#f7f4ed]":""}`}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="truncate text-sm font-semibold text-[#192334]">{displayName(item)}</p>
@@ -275,6 +286,7 @@ export function ConnectInbox() {
             )}
             <div className="flex min-h-[450px] max-h-[610px] flex-col gap-4 overflow-y-auto bg-[#fafbfc] px-5 py-5" aria-live="polite">
               {loadingMessages ? <p className="text-sm text-[#718094]">Carregando histórico...</p>
+                : messageThreadId!==active ? <p className="py-12 text-center text-sm text-[#718094]">Carregando conversa selecionada...</p>
                 : messages.length===0 ? <p className="py-12 text-center text-sm text-[#718094]">Nenhuma mensagem recebida nesta conversa.</p>
                 : messages.map(message=>(
                   <article key={message.id} className="max-w-[90%] self-start rounded-2xl rounded-tl-sm border border-[#e0e4eb] bg-white px-4 py-3 shadow-sm">
